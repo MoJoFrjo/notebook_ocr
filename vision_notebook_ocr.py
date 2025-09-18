@@ -90,11 +90,18 @@ def ocr_one_image(path: Path) -> str:
         img_b64 = base64.b64encode(f.read()).decode("utf-8")
 
     prompt = (
-        "You are a STRICT OCR agent. Extract ONLY the exact visible handwritten/printed text.\n"
+        "You are a STRICT OCR transcription agent. Extract ONLY the exact visible handwritten/printed text.\n"
         "Rules:\n"
         "• Copy text verbatim (spelling, punctuation, capitalization). Do NOT rephrase.\n"
-        "• Do NOT invent sections, continue patterns, or summarize. If unclear, write '??'.\n"
-        "• Output plain text only. End the output with the token [END] and nothing after."
+        "• Do NOT summarize, infer, or invent missing text. If unclear, write '??'.\n"
+        "• Preserve structure exactly as written on the page:\n"
+        "   - Each main numbered item (1, 2, 3, etc.) must be on its own line.\n"
+        "   - Any indented or sub-items beneath a number must be placed on their own lines, prefixed with '- '.\n"
+        "   - Preserve fractions (¼, ½, ⅛) and musical notation symbols as written.\n"
+        "   - Do not merge separate sub-items into one line.\n"
+        "• If the page has two columns, output the entire left column first (top to bottom), then the right column (top to bottom).\n"
+        "• Output plain text only (no Markdown, no headers, no extra symbols).\n"
+        "• End the output with the token [END] and nothing after."
     )
 
     payload = {

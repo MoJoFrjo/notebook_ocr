@@ -1,0 +1,193 @@
+{
+  "main": {
+    "id": "add573ebb4706dd0",
+    "type": "split",
+    "children": [
+      {
+        "id": "dafd13b7b72c5898",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "caa834f8da74d4fd",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "output_md/IMG_7223.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "IMG_7223"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3a504a58984ea369",
+    "type": "split",
+    "children": [
+      {
+        "id": "934efe600db10e97",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0ce41bd619917795",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "ad86c5295005720e",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "47e33770744a4fac",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "cc2f63251795dae0",
+    "type": "split",
+    "children": [
+      {
+        "id": "016348282780b115",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ad9ab644f8aefb75",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "output_md/IMG_7217.JPEG",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for IMG_7217"
+            }
+          },
+          {
+            "id": "99992d31dd68e64d",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "output_md/IMG_7217.JPEG",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from IMG_7217"
+            }
+          },
+          {
+            "id": "c1919357095d190b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "81792682f74c2032",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "output_md/IMG_7217.JPEG",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of IMG_7217"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "caa834f8da74d4fd",
+  "lastOpenFiles": [
+    "output_md/IMG_7223.JPEG",
+    "output_md/IMG_7224.JPEG",
+    "output_md/IMG_7224.md",
+    "output_md/IMG_7223.md",
+    "output_md/IMG_7222.md",
+    "output_md/IMG_7222.JPEG",
+    "output_md/IMG_7221.md",
+    "output_md/IMG_7221.JPEG",
+    "output_md/IMG_7220.md",
+    "output_md/IMG_7220.JPEG",
+    "output_md/IMG_7219.md",
+    "output_md/IMG_7219.JPEG",
+    "output_md/IMG_7218.md",
+    "output_md/IMG_7218.JPEG",
+    "output_md/IMG_7217.JPEG",
+    "output_md/IMG_7217.md",
+    "archive/2025-09-16_21-52-35_IMG_7219.JPEG",
+    "archive/2025-09-16_19-25-39_IMG_7218.JPEG"
+  ]
+}
