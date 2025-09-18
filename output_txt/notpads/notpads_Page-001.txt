@@ -1,32 +1,321 @@
 ### Left Column
-1) 8 Open Chords
-2) Bar Chords
-3) Notes on E&A
-4) Strumming Patterns
-5) Consistent Timing
-6) Ear Training
-7) Play Songs
-8) Music Theory
-9) Play Scales & Major Minor
-10) Pentonics - Natural
-11) Alternate Pick
-12) Read Music
+1. Counting
+2. Arithmetic
+3. Rational Integers
+4. Real Numbers
+5. Algebra
+6. Number Theory
+7. Cobinatorics
+8. Group Theory
+9. Order Theory
+10. Counting
+11. Geometry
+12. Trigonometry
+13. Topology
+14. Measure Theory
+15. Calc
+16. Vector
+17. Dynamical
+18.
 
 ### Right Column
-1. Menorize money notes
-2. Freat with all fingers
-3. Alternating 120 BPM
-4. Playing slow with metronome
-5. Play legato
-6. Mute strings
-7. Scales
-8. Major minor pentatonic
-9. Blues
-10. Basic Rhythms
-11. Read notation
-12. Play with drummer
-13. JAM SKILL
-14. Find roots
-15. Ear train
-16. Play full songs
-17. 12 Bar Blues
+1.
+-
+-
+2.
+-
+-
+3.
+-
+-
+4.
+-
+-
+5.
+-
+-
+6.
+-
+-
+7.
+-
+-
+8.
+-
+-
+9.
+-
+-
+10.
+-
+-
+11.
+-
+-
+12.
+-
+-
+13.
+-
+-
+14.
+-
+-
+15.
+-
+-
+16.
+-
+-
+17.
+-
+-
+18.
+-
+-
+19.
+-
+-
+20.
+-
+-
+21.
+-
+-
+22.
+-
+-
+23.
+-
+-
+24.
+-
+-
+25.
+-
+-
+26.
+-
+-
+27.
+-
+-
+28.
+-
+-
+29.
+-
+-
+30.
+-
+-
+31.
+-
+-
+32.
+-
+-
+33.
+-
+-
+34.
+-
+-
+35.
+-
+-
+36.
+-
+-
+37.
+-
+-
+38.
+-
+-
+39.
+-
+-
+40.
+-
+-
+41.
+-
+-
+42.
+-
+-
+43.
+-
+-
+44.
+-
+-
+45.
+-
+-
+46.
+-
+-
+47.
+-
+-
+48.
+-
+-
+49.
+-
+-
+50.
+-
+-
+51.
+-
+-
+52.
+-
+-
+53.
+-
+-
+54.
+-
+-
+55.
+-
+-
+56.
+-
+-
+57.
+-
+-
+58.
+-
+-
+59.
+-
+-
+60.
+-
+-
+61.
+-
+-
+62.
+-
+-
+63.
+-
+-
+64.
+-
+-
+65.
+-
+-
+66.
+-
+-
+67.
+-
+-
+68.
+-
+-
+69.
+-
+-
+70.
+-
+-
+71.
+-
+-
+72.
+-
+-
+73.
+-
+-
+74.
+-
+-
+75.
+-
+-
+76.
+-
+-
+77.
+-
+-
+78.
+-
+-
+79.
+-
+-
+80.
+-
+-
+81.
+-
+-
+82.
+-
+-
+83.
+-
+-
+84.
+-
+-
+85.
+-
+-
+86.
+-
+-
+87.
+-
+-
+88.
+-
+-
+89.
+-
+-
+90.
+-
+-
+91.
+-
+-
+92.
+-
+-
+93.
+-
+-
+94.
+-
+-
+95.
+-
+-
+96.
+-
+-
+97.
+-
+-
+98.
+-
+-
+99.
+-
+-
+100.
+-
+-
