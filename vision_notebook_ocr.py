@@ -3,170 +3,188 @@ import shutil
 import requests
 import base64
 import json
-import subprocess
-import time
 from pathlib import Path
 from datetime import datetime
-from PIL import Image  # 👈 auto-resize
+from PIL import Image, ImageFilter
 
 # === Config ===
-BASE_DIR = r"C:\Users\austi\Desktop\Projects\notebook_ocr"
-INPUT_DIR = Path(BASE_DIR) / "input_pics"   # 📂 Put notebooks here (each in its own folder)
-OUTPUT_DIR = Path(BASE_DIR) / "output_md"
-ARCHIVE_DIR = Path(BASE_DIR) / "archive"
+BASE_DIR   = r"C:\Users\austi\Desktop\Projects\notebook_ocr"
+INPUT_DIR  = Path(BASE_DIR) / "input_pics"
+OUTPUT_DIR = Path(BASE_DIR) / "output_txt"
+ARCHIVE_DIR= Path(BASE_DIR) / "archive"
 
-# Ollama API
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "llama3.2-vision:11b"
+MODEL      = "llama3.2-vision:11b"
 
-# Ensure folders exist
-INPUT_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(exist_ok=True)
-ARCHIVE_DIR.mkdir(exist_ok=True)
+MAX_WIDTH        = 2000
+AUTO_SPLIT_COLS  = True
+NUM_CTX          = 9000
+NUM_PREDICT      = 1400
 
+for folder in (INPUT_DIR, OUTPUT_DIR, ARCHIVE_DIR):
+    folder.mkdir(exist_ok=True)
 
-# === Auto-start Ollama if not running ===
-def ensure_ollama_running():
-    try:
-        requests.get("http://localhost:11434/api/tags", timeout=2)
-        print("✅ Ollama service is already running.")
-    except Exception:
-        print("⚡ Starting Ollama service...")
-        subprocess.Popen(
-            ["ollama", "serve"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        time.sleep(5)
+# ---------- imaging helpers ----------
 
-
-ensure_ollama_running()
-
-
-def resize_image(image_path: Path, max_width: int = 2000) -> Path:
-    """Resize image if too wide. Returns resized temp file path."""
+def resize_image(image_path: Path, max_width: int = MAX_WIDTH) -> Path:
     with Image.open(image_path) as img:
         if img.width > max_width:
-            ratio = max_width / float(img.width)
-            new_height = int(img.height * ratio)
-            resized = img.resize((max_width, new_height), Image.LANCZOS)
-            temp_path = image_path.parent / f"resized_{image_path.name}"
-            resized.save(temp_path, format="JPEG", quality=90)
-            return temp_path
-    return image_path
+            ratio = max_width / img.width
+            new_h = int(img.height * ratio)
+            img = img.resize((max_width, new_h), Image.LANCZOS)
+        img = img.filter(ImageFilter.UnsharpMask(radius=1.2, percent=130, threshold=2))
+        tmp = image_path.parent / f"resized_{image_path.name}"
+        img.save(tmp, format="JPEG", quality=90)
+        return tmp
 
+def split_columns(preprocessed_path: Path) -> list[tuple[str, Path]]:
+    """Return list of (label, image_path) for left/right columns."""
+    if not AUTO_SPLIT_COLS:
+        return [("Full Page", preprocessed_path)]
+    with Image.open(preprocessed_path) as img:
+        w, h = img.size
+        left_box  = (0, 0, w // 2, h)
+        right_box = (w // 2, 0, w, h)
+        left_img  = img.crop(left_box)
+        right_img = img.crop(right_box)
 
-def clean_transcript(text: str) -> str:
-    """Remove duplicate lines but allow all headings/content."""
-    lines = text.splitlines()
-    cleaned, seen = [], set()
-    for line in lines:
-        if line.strip() and line not in seen:
-            cleaned.append(line)
-            seen.add(line)
-    return "\n".join(cleaned).strip()
+        left_path  = preprocessed_path.parent / f"left_{preprocessed_path.name}"
+        right_path = preprocessed_path.parent / f"right_{preprocessed_path.name}"
+        left_img.save(left_path,  format="JPEG", quality=90)
+        right_img.save(right_path, format="JPEG", quality=90)
+        return [("Left Column", left_path), ("Right Column", right_path)]
 
+def shorten_filename(path: Path, max_total_len: int = 240, stem_keep: int = 120) -> Path:
+    s = str(path)
+    if len(s) <= max_total_len:
+        return path
+    ext  = path.suffix
+    stem = path.stem[:max(8, stem_keep - len(ext))]
+    return path.with_name(stem + ext)
 
-def transcribe_image(image_path: Path) -> str:
-    """Send an image to Ollama vision model and return transcript text."""
-    print(f"📷 Sending {image_path.name} to {MODEL}...")
+# ---------- text cleanup ----------
 
-    resized_path = resize_image(image_path)
-    with open(resized_path, "rb") as f:
+def clean_text(s: str) -> str:
+    if "[END]" in s:
+        s = s.split("[END]", 1)[0]
+    idx = s.find("\nNote:")
+    if idx != -1:
+        s = s[:idx]
+    lines = [ln.rstrip() for ln in s.splitlines()]
+    out, last, repeats = [], None, 0
+    for ln in lines:
+        if ln and ln == last:
+            repeats += 1
+            if repeats >= 2:
+                continue
+        else:
+            repeats = 0
+        out.append(ln)
+        last = ln
+    return "\n".join([ln for ln in out if ln.strip()]).strip()
+
+# ---------- core OCR ----------
+
+def ocr_one_image(path: Path) -> str:
+    with open(path, "rb") as f:
         img_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # 🔹 Refined OCR prompt with double “do not repeat”
     prompt = (
-        "You are an OCR transcription agent. Transcribe this handwritten notebook page into Markdown for Obsidian.\n"
+        "You are a STRICT OCR agent. Extract ONLY the exact visible handwritten/printed text.\n"
         "Rules:\n"
-        "- Copy text exactly as written, once only. Do NOT repeat, invent, or summarize.\n"
-        "- Use # or ## for headings if clearly shown.\n"
-        "- Keep numbered lists as 1. 2. 3. and use - for bullet points. Indent sub-items.\n"
-        "- If handwriting is unclear, write '??'.\n"
-        "- Preserve arrows (→ or ->).\n"
-        "- Mark drawings/sketches as [[Drawing: description]].\n"
-        "- Stop when the page ends. Output only valid Markdown.\n"
-        "- Do not repeat content. Do not repeat content."
+        "• Copy text verbatim (spelling, punctuation, capitalization). Do NOT rephrase.\n"
+        "• Do NOT invent sections, continue patterns, or summarize. If unclear, write '??'.\n"
+        "• Output plain text only. End the output with the token [END] and nothing after."
     )
 
     payload = {
         "model": MODEL,
         "prompt": prompt,
         "images": [img_b64],
-        "options": {"temperature": 0, "num_ctx": 7500},  # 🔹 updated context window
-        "stream": False,
+        "options": {
+            "temperature": 0,
+            "num_ctx": NUM_CTX,
+            "num_predict": NUM_PREDICT,
+            "repeat_penalty": 1.2,
+            "penalty_last_n": 256
+        },
+        "stream": False
     }
 
-    for attempt in range(1, 4):  # 3 attempts
-        try:
-            response = requests.post(OLLAMA_URL, json=payload, timeout=600)
-            response.raise_for_status()
+    resp = requests.post(OLLAMA_URL, json=payload, timeout=600)
+    resp.raise_for_status()
 
-            raw_lines = response.text.strip().splitlines()
-            last_line = raw_lines[-1]
-            data = json.loads(last_line)
+    try:
+        data = resp.json()
+    except Exception:
+        data = json.loads(resp.text.strip().splitlines()[-1])
 
-            transcript = data.get("response", "").strip()
-            if not transcript:
-                print(f"⚠️ No transcript returned for {image_path.name} (attempt {attempt}/3)")
-                continue
+    return data.get("response", "")
 
-            return clean_transcript(transcript)
+def transcribe_image(image_path: Path) -> str:
+    print(f"📷 OCR: {image_path.name}")
+    tmp = resize_image(image_path)
+    parts = split_columns(tmp)
 
-        except Exception as e:
-            print(f"⚠️ Error for {image_path.name} (attempt {attempt}/3): {e}")
-            time.sleep(5)
+    sections = []
+    try:
+        for label, p in parts:
+            part_txt = ocr_one_image(p)
+            cleaned = clean_text(part_txt)
+            sections.append(f"### {label}\n{cleaned}\n")
+    finally:
+        for _, p in parts + [("tmp", tmp)]:
+            try:
+                if Path(p).exists():
+                    Path(p).unlink()
+            except Exception:
+                pass
 
-    print(f"❌ Failed to process {image_path.name} after 3 attempts.")
-    return ""
+    return "\n".join(sections).strip()
 
+# ---------- batch ----------
 
 def process_notebook(notebook_path: Path):
-    """Process all images in one notebook folder."""
     notebook_name = notebook_path.name
-    output_folder = OUTPUT_DIR / notebook_name
-    output_folder.mkdir(parents=True, exist_ok=True)
+    out_dir = OUTPUT_DIR / notebook_name
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    files = sorted([f for f in notebook_path.rglob("*") if f.suffix.lower() in [".jpg", ".jpeg", ".png"]])
-    total = len(files)
-    print(f"📓 Notebook '{notebook_name}': Found {total} page(s).")
+    files = sorted(
+        list(notebook_path.glob("*.jpg")) +
+        list(notebook_path.glob("*.jpeg")) +
+        list(notebook_path.glob("*.png")) +
+        list(notebook_path.glob("*.JPG")) +
+        list(notebook_path.glob("*.JPEG")) +
+        list(notebook_path.glob("*.PNG"))
+    )
 
-    for i, file in enumerate(files, start=1):
-        print(f"[{i}/{total}] Processing {file.name}...")
+    if not files:
+        print(f"⚠️ No images found in {notebook_name}")
+        return
 
-        transcript = transcribe_image(file)
-        if not transcript:
-            print(f"❌ Skipping {file.name}")
+    for i, img in enumerate(files, 1):
+        print(f"[{i}/{len(files)}] Processing {img.name}")
+        text = transcribe_image(img)
+        if not text:
+            print(f"⚠️ Empty OCR for {img.name}")
             continue
 
-        # Numbered file names for clarity
-        page_num = str(i).zfill(3)
-        md_filename = f"{notebook_name}_Page-{page_num}.md"
-        md_path = output_folder / md_filename
+        txt_path = out_dir / f"{notebook_name}_Page-{i:03}.txt"
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write(text)
 
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(f"# {notebook_name} - Page {page_num}\n\n")
-            f.write("## Transcript\n")
-            f.write(transcript + "\n\n")
-            f.write("## Original Image\n")
-            f.write(f"![[{file.name}]]\n")
+        archived = ARCHIVE_DIR / f"{notebook_name}_{datetime.now():%Y-%m-%d_%H-%M-%S}_{img.name}"
+        archived = shorten_filename(archived)
+        shutil.move(str(img), archived)
+        print(f"✅ Saved {txt_path.name}")
 
-        # Copy image next to markdown
-        shutil.copy(file, output_folder / file.name)
-
-        # Archive original
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        archived_file = ARCHIVE_DIR / f"{notebook_name}_{timestamp}_{file.name}"
-        shutil.move(str(file), archived_file)
-
-        print(f"✅ Saved {md_filename} and archived {file.name}.")
-
+    print(f"📓 Finished notebook: {notebook_name}")
 
 if __name__ == "__main__":
     notebooks = [d for d in INPUT_DIR.iterdir() if d.is_dir()]
     if not notebooks:
-        print("⚠️ No notebooks found in input_pics/. Place each notebook in its own folder.")
+        print("⚠️ No notebooks found. Place images inside input_pics/<notebook_name>/")
     else:
         for nb in notebooks:
             process_notebook(nb)
-        print("\n🏁 All notebooks processed.")
+        print("🏁 OCR complete.")
